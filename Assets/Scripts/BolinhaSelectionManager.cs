@@ -131,7 +131,21 @@ public class BolinhaSelectionManager : MonoBehaviour
     {
         if (!confirmadoP1 || !confirmadoP2) return;
 
+        GarantirGameSessionExiste();
+
         GameSession.Instance.DefinirEscolhas(bolinhasDisponiveis[indexP1], bolinhasDisponiveis[indexP2]);
         GameSession.Instance.IniciarPartida(nomeCenaGameplay, nomeCenaGUI);
+    }
+
+    /// <summary>
+    /// Proteção: se essa cena for testada diretamente (sem passar pela _Boot),
+    /// o GameSession ainda não existiria. Isso cria um na hora, evitando NullReferenceException.
+    /// </summary>
+    private void GarantirGameSessionExiste()
+    {
+        if (GameSession.Instance != null) return;
+
+        GameObject obj = new GameObject("GameSession");
+        obj.AddComponent<GameSession>();
     }
 }

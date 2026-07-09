@@ -16,7 +16,7 @@ public class GameSession : MonoBehaviour
 
     public int RoundsGanhosP1 { get; private set; }
     public int RoundsGanhosP2 { get; private set; }
-    public const int RoundsParaVencer = 2;
+    private const int RoundsParaVencer = 2;
 
     public PlayerIndex? VencedorDaPartida { get; private set; }
 

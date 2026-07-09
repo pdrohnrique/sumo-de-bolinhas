@@ -22,6 +22,8 @@ public class BolinhaController : MonoBehaviour
     public float alcanceMaximoAcao = 6f;
     [Tooltip("Distância mínima usada no cálculo, evita força infinita quando colado")]
     public float distanciaMinima = 0.5f;
+    [Tooltip("Distância na qual a bolinha ainda recebe a força CHEIA (controla a intensidade geral do empurrão). Aumente pra sentir o empurrão mais forte à distância.")]
+    public float distanciaReferenciaForca = 3f;
     [Tooltip("Componente vertical extra aplicada no empurrão, pra dar uma leve 'jogada pra cima'")]
     public float componenteVerticalEmpurrao = 2f;
 
@@ -150,8 +152,9 @@ public class BolinhaController : MonoBehaviour
         Vector3 direcao = delta.normalized;
         float distanciaClamp = Mathf.Max(distancia, distanciaMinima);
 
-        // Quanto mais perto, mais forte (proporcional inverso à distância)
-        float magnitude = forcaAtual * (alcanceMaximoAcao / distanciaClamp);
+        // Força máxima quando a distância <= distanciaReferenciaForca, caindo conforme afasta.
+        // Independente de alcanceMaximoAcao (que só controla o corte) e de distanciaMinima (só o piso).
+        float magnitude = forcaAtual * (distanciaReferenciaForca / distanciaClamp);
 
         Vector3 forcaFinal = direcao * magnitude + Vector3.up * componenteVerticalEmpurrao;
         alvoInimigo.ReceberEmpurrao(forcaFinal);
