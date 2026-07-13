@@ -28,10 +28,16 @@ public class GameManager : MonoBehaviour
 
     // --- Eventos para a UI (Observer) ---
     public event Action<int, int> OnPlacarAtualizado; // (roundsP1, roundsP2)
+
+    public event Action<int, int> OnMoedasColetadas; // (moedasP1, moedasP2)
     public event Action<PlayerIndex> OnRoundTerminou;
     public event Action<PlayerIndex> OnPartidaTerminou;
 
-    private bool _rodadaEmAndamento = true;
+    // internal tracking of collected coins per player (updated by subscribing to bolinha events)
+    private int moedasP1Count;
+    private int moedasP2Count;
+
+    private bool rodadaEmAndamento = true;
 
     void Awake()
     {
@@ -54,12 +60,26 @@ public class GameManager : MonoBehaviour
         bolinhaP1.alvoInimigo = bolinhaP2;
         bolinhaP2.alvoInimigo = bolinhaP1;
 
+        // Subscribe to bolinha coin events to forward to UI
+        if (bolinhaP1 != null)
+            bolinhaP1.OnMoedaColetada += (count) =>
+            {
+                moedasP1Count = count;
+                OnMoedasColetadas?.Invoke(moedasP1Count, moedasP2Count);
+            };
+        if (bolinhaP2 != null)
+            bolinhaP2.OnMoedaColetada += (count) =>
+            {
+                moedasP2Count = count;
+                OnMoedasColetadas?.Invoke(moedasP1Count, moedasP2Count);
+            };
+
         IniciarRound();
     }
 
     void Update()
     {
-        if (!_rodadaEmAndamento) return;
+        if (!rodadaEmAndamento) return;
 
         if (EstaForaDaArena(bolinhaP1.transform.position))
         {
@@ -79,7 +99,7 @@ public class GameManager : MonoBehaviour
 
     private void IniciarRound()
     {
-        _rodadaEmAndamento = true;
+        rodadaEmAndamento = true;
 
         bolinhaP1.transform.position = posicaoInicialP1.position;
         bolinhaP2.transform.position = posicaoInicialP2.position;
@@ -88,6 +108,11 @@ public class GameManager : MonoBehaviour
 
         bolinhaP1.InicializarComData();
         bolinhaP2.InicializarComData();
+
+        // reset coin counters and notify UI
+        moedasP1Count = 0;
+        moedasP2Count = 0;
+        OnMoedasColetadas?.Invoke(moedasP1Count, moedasP2Count);
 
         CoinSpawner.Instance?.LimparTodasAsMoedas();
 
@@ -99,7 +124,7 @@ public class GameManager : MonoBehaviour
 
     private void TerminarRound(PlayerIndex vencedorDoRound)
     {
-        _rodadaEmAndamento = false;
+        rodadaEmAndamento = false;
         OnRoundTerminou?.Invoke(vencedorDoRound);
 
         bool partidaAcabou = GameSession.Instance != null &&

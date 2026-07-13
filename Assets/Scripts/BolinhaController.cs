@@ -32,40 +32,40 @@ public class BolinhaController : MonoBehaviour
     // Referência à outra bolinha, atribuída pelo GameManager ao iniciar o round
     [HideInInspector] public BolinhaController alvoInimigo;
 
-    private Rigidbody _rb;
-    private PlayerControls _controls;
-    private Vector2 _inputMove; // x = eixo X do mundo, y = eixo Z do mundo
+    private Rigidbody rb;
+    private PlayerControls controls;
+    private Vector2 inputMove; // x = eixo X do mundo, y = eixo Z do mundo
 
-    private float _velocidadeAtual;
-    private float _forcaAtual;
-    private int _moedasColetadas;
+    private float velocidadeAtual;
+    private float forcaAtual;
+    private int moedasColetadas;
 
-    private float _cooldownTimer;
-    private bool _podeUsarAcao = true;
+    private float cooldownTimer;
+    private bool podeUsarAcao = true;
 
     void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
-        _rb.useGravity = true;
-        _rb.freezeRotation = true; // controle direto, sem a bolinha tombar/rolar de forma imprevisível
-        _controls = new PlayerControls();
+        rb = GetComponent<Rigidbody>();
+        rb.useGravity = true;
+        rb.freezeRotation = true; // controle direto, sem a bolinha tombar/rolar de forma imprevisível
+        controls = new PlayerControls();
     }
 
     void OnEnable()
     {
         if (playerIndex == PlayerIndex.Player1)
         {
-            _controls.Player1.Enable();
-            _controls.Player1.Move.performed += OnMovePerformed;
-            _controls.Player1.Move.canceled += OnMoveCanceled;
-            _controls.Player1.Ability.performed += OnAbilityPerformed;
+            controls.Player1.Enable();
+            controls.Player1.Move.performed += OnMovePerformed;
+            controls.Player1.Move.canceled += OnMoveCanceled;
+            controls.Player1.Ability.performed += OnAbilityPerformed;
         }
         else
         {
-            _controls.Player2.Enable();
-            _controls.Player2.Move.performed += OnMovePerformed;
-            _controls.Player2.Move.canceled += OnMoveCanceled;
-            _controls.Player2.Ability.performed += OnAbilityPerformed;
+            controls.Player2.Enable();
+            controls.Player2.Move.performed += OnMovePerformed;
+            controls.Player2.Move.canceled += OnMoveCanceled;
+            controls.Player2.Ability.performed += OnAbilityPerformed;
         }
     }
 
@@ -73,17 +73,17 @@ public class BolinhaController : MonoBehaviour
     {
         if (playerIndex == PlayerIndex.Player1)
         {
-            _controls.Player1.Move.performed -= OnMovePerformed;
-            _controls.Player1.Move.canceled -= OnMoveCanceled;
-            _controls.Player1.Ability.performed -= OnAbilityPerformed;
-            _controls.Player1.Disable();
+            controls.Player1.Move.performed -= OnMovePerformed;
+            controls.Player1.Move.canceled -= OnMoveCanceled;
+            controls.Player1.Ability.performed -= OnAbilityPerformed;
+            controls.Player1.Disable();
         }
         else
         {
-            _controls.Player2.Move.performed -= OnMovePerformed;
-            _controls.Player2.Move.canceled -= OnMoveCanceled;
-            _controls.Player2.Ability.performed -= OnAbilityPerformed;
-            _controls.Player2.Disable();
+            controls.Player2.Move.performed -= OnMovePerformed;
+            controls.Player2.Move.canceled -= OnMoveCanceled;
+            controls.Player2.Ability.performed -= OnAbilityPerformed;
+            controls.Player2.Disable();
         }
     }
 
@@ -96,13 +96,13 @@ public class BolinhaController : MonoBehaviour
     {
         if (data == null) return;
 
-        _velocidadeAtual = data.velocidade;
-        _forcaAtual = data.forcaEmpurrao;
-        _rb.mass = data.massa;
+        velocidadeAtual = data.velocidade;
+        forcaAtual = data.forcaEmpurrao;
+        rb.mass = data.massa;
         transform.localScale = Vector3.one * data.tamanho;
-        _moedasColetadas = 0;
-        _cooldownTimer = 0f;
-        _podeUsarAcao = true;
+        moedasColetadas = 0;
+        cooldownTimer = 0f;
+        podeUsarAcao = true;
 
         var component = GetComponent<Renderer>();
         if (component != null)
@@ -120,31 +120,31 @@ public class BolinhaController : MonoBehaviour
     void FixedUpdate()
     {
         // alvo de velocidade horizontal desejada (X/Z)
-        Vector3 desiredVel = new Vector3(_inputMove.x, 0f, _inputMove.y) * _velocidadeAtual;
-        Vector3 currentVel = new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z);
+        Vector3 desiredVel = new Vector3(inputMove.x, 0f, inputMove.y) * velocidadeAtual;
+        Vector3 currentVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         Vector3 velDelta = desiredVel - currentVel;
         // força necessária para alcançar velDelta neste passo físico (F = m * dv / dt)
-        Vector3 requiredForce = velDelta * _rb.mass / Time.fixedDeltaTime * data.multiplicadorRespostaMovimento;
+        Vector3 requiredForce = velDelta * rb.mass / Time.fixedDeltaTime * data.multiplicadorRespostaMovimento;
         // limita para evitar picos enormes: usa o limite configurável em BolinhaData
         float maxForce = data.forcaMovimentoMaxima;
         if (requiredForce.magnitude > maxForce)
             requiredForce = requiredForce.normalized * maxForce;
-        _rb.AddForce(requiredForce, ForceMode.Force);
+        rb.AddForce(requiredForce, ForceMode.Force);
     }
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
-        _inputMove = ctx.ReadValue<Vector2>();
+        inputMove = ctx.ReadValue<Vector2>();
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
-        _inputMove = Vector2.zero;
+        inputMove = Vector2.zero;
     }
 
     private void OnAbilityPerformed(InputAction.CallbackContext ctx)
     {
-        if (!_podeUsarAcao || alvoInimigo == null) return;
+        if (!podeUsarAcao || alvoInimigo == null) return;
         UsarAcaoDeForca();
     }
 
@@ -161,32 +161,32 @@ public class BolinhaController : MonoBehaviour
 
         // Força máxima quando a distância <= distanciaReferenciaForca, caindo conforme afasta.
         // Independente de alcanceMaximoAcao (que só controla o corte) e de distanciaMinima (só o piso).
-        float magnitude = _forcaAtual * (distanciaReferenciaForca / distanciaClamp);
+        float magnitude = forcaAtual * (distanciaReferenciaForca / distanciaClamp);
 
         Vector3 forcaFinal = direcao * magnitude;
         alvoInimigo.ReceberEmpurrao(forcaFinal);
 
-        _podeUsarAcao = false;
-        _cooldownTimer = data.cooldownAcao;
+        podeUsarAcao = false;
+        cooldownTimer = data.cooldownAcao;
         OnCooldownProgressChanged?.Invoke(0f);
     }
 
     private void ReceberEmpurrao(Vector3 forca)
     {
-        _rb.AddForce(forca, ForceMode.Impulse);
+        rb.AddForce(forca, ForceMode.Impulse);
     }
 
     private void AtualizarCooldown()
     {
-        if (_podeUsarAcao) return;
+        if (podeUsarAcao) return;
 
-        _cooldownTimer -= Time.deltaTime;
-        float progresso = 1f - Mathf.Clamp01(_cooldownTimer / data.cooldownAcao);
+        cooldownTimer -= Time.deltaTime;
+        float progresso = 1f - Mathf.Clamp01(cooldownTimer / data.cooldownAcao);
         OnCooldownProgressChanged?.Invoke(progresso);
 
-        if (_cooldownTimer <= 0f)
+        if (cooldownTimer <= 0f)
         {
-            _podeUsarAcao = true;
+            podeUsarAcao = true;
             OnCooldownProgressChanged?.Invoke(1f);
         }
     }
@@ -196,11 +196,11 @@ public class BolinhaController : MonoBehaviour
     /// </summary>
     public void ColetarMoeda()
     {
-        _moedasColetadas++;
-        _rb.mass += data.massaGanhaPorMoeda;
-        _forcaAtual += data.forcaGanhaPorMoeda;
-        _velocidadeAtual = Mathf.Max(0.5f, _velocidadeAtual - data.velocidadePerdidaPorMoeda);
+        moedasColetadas++;
+        rb.mass += data.massaGanhaPorMoeda;
+        forcaAtual += data.forcaGanhaPorMoeda;
+        velocidadeAtual = Mathf.Max(0.5f, velocidadeAtual - data.velocidadePerdidaPorMoeda);
 
-        OnMoedaColetada?.Invoke(_moedasColetadas);
+        OnMoedaColetada?.Invoke(moedasColetadas);
     }
 }

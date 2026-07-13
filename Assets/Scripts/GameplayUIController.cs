@@ -12,6 +12,10 @@ public class GameplayUIController : MonoBehaviour
     [Header("Placar")]
     public TMP_Text placarP1;
     public TMP_Text placarP2;
+    
+    [Header("Moedas coletadas")]
+    public TMP_Text moedasP1;
+    public TMP_Text moedasP2;
 
     [Header("Barras de cooldown da ação (Image com Fill Amount)")]
     public Image barraCooldownP1;
@@ -21,7 +25,7 @@ public class GameplayUIController : MonoBehaviour
     public TMP_Text avisoRound;
     public float duracaoAviso = 1.5f;
 
-    private float _timerAviso;
+    private float timerAviso;
 
     void OnEnable()
     {
@@ -29,6 +33,7 @@ public class GameplayUIController : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlacarAtualizado += AtualizarPlacar;
+            GameManager.Instance.OnMoedasColetadas += AtualizarMoedas;
             GameManager.Instance.OnRoundTerminou += MostrarAvisoRound;
 
             GameManager.Instance.bolinhaP1.OnCooldownProgressChanged += AtualizarCooldownP1;
@@ -43,6 +48,7 @@ public class GameplayUIController : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlacarAtualizado -= AtualizarPlacar;
+            GameManager.Instance.OnMoedasColetadas -= AtualizarMoedas;
             GameManager.Instance.OnRoundTerminou -= MostrarAvisoRound;
 
             GameManager.Instance.bolinhaP1.OnCooldownProgressChanged -= AtualizarCooldownP1;
@@ -52,10 +58,10 @@ public class GameplayUIController : MonoBehaviour
 
     void Update()
     {
-        if (_timerAviso > 0f)
+        if (timerAviso > 0f)
         {
-            _timerAviso -= Time.deltaTime;
-            if (_timerAviso <= 0f && avisoRound != null)
+            timerAviso -= Time.deltaTime;
+            if (timerAviso <= 0f && avisoRound != null)
             {
                 avisoRound.gameObject.SetActive(false);
             }
@@ -66,6 +72,12 @@ public class GameplayUIController : MonoBehaviour
     {
         if (placarP1 != null) placarP1.text = $"P1 - {roundsP1}pts";
         if (placarP2 != null) placarP2.text = $"P2 - {roundsP2}pts";
+    }
+    
+    private void AtualizarMoedas(int moedasP1Count, int moedasP2Count)
+    {
+        if (moedasP1 != null) moedasP1.text = $"Moedas: {moedasP1Count}";
+        if (moedasP2 != null) moedasP2.text = $"Moedas: {moedasP2Count}";
     }
 
     private void AtualizarCooldownP1(float progresso)
@@ -85,6 +97,6 @@ public class GameplayUIController : MonoBehaviour
             ? "Jogador 1 venceu o round!"
             : "Jogador 2 venceu o round!";
         avisoRound.gameObject.SetActive(true);
-        _timerAviso = duracaoAviso;
+        timerAviso = duracaoAviso;
     }
 }

@@ -27,38 +27,38 @@ public class BolinhaSelectionManager : MonoBehaviour
     public string nomeCenaGameplay = "Gameplay";
     public string nomeCenaGUI = "GUI";
 
-    private int _indexP1;
-    private int _indexP2 = 1; // começa em bolinhas diferentes por padrão
-    private bool _confirmadoP1;
-    private bool _confirmadoP2;
+    private int indexP1;
+    private int indexP2 = 1; // começa em bolinhas diferentes por padrão
+    private bool confirmadoP1;
+    private bool confirmadoP2;
 
-    private PlayerControls _controls;
+    private PlayerControls controls;
 
     void Awake()
     {
-        _controls = new PlayerControls();
+        controls = new PlayerControls();
     }
 
     void OnEnable()
     {
-        _controls.Player1.Enable();
-        _controls.Player1.Move.performed += OnMoveP1;
-        _controls.Player1.Ability.performed += OnConfirmP1;
+        controls.Player1.Enable();
+        controls.Player1.Move.performed += OnMoveP1;
+        controls.Player1.Ability.performed += OnConfirmP1;
 
-        _controls.Player2.Enable();
-        _controls.Player2.Move.performed += OnMoveP2;
-        _controls.Player2.Ability.performed += OnConfirmP2;
+        controls.Player2.Enable();
+        controls.Player2.Move.performed += OnMoveP2;
+        controls.Player2.Ability.performed += OnConfirmP2;
     }
 
     void OnDisable()
     {
-        _controls.Player1.Move.performed -= OnMoveP1;
-        _controls.Player1.Ability.performed -= OnConfirmP1;
-        _controls.Player1.Disable();
+        controls.Player1.Move.performed -= OnMoveP1;
+        controls.Player1.Ability.performed -= OnConfirmP1;
+        controls.Player1.Disable();
 
-        _controls.Player2.Move.performed -= OnMoveP2;
-        _controls.Player2.Ability.performed -= OnConfirmP2;
-        _controls.Player2.Disable();
+        controls.Player2.Move.performed -= OnMoveP2;
+        controls.Player2.Ability.performed -= OnConfirmP2;
+        controls.Player2.Disable();
     }
 
     void Start()
@@ -68,32 +68,32 @@ public class BolinhaSelectionManager : MonoBehaviour
 
     private void OnMoveP1(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
     {
-        if (_confirmadoP1) return;
+        if (confirmadoP1) return;
         float x = ctx.ReadValue<Vector2>().x;
-        if (x > 0.5f) MudarIndex(ref _indexP1, 1);
-        else if (x < -0.5f) MudarIndex(ref _indexP1, -1);
+        if (x > 0.5f) MudarIndex(ref indexP1, 1);
+        else if (x < -0.5f) MudarIndex(ref indexP1, -1);
         AtualizarUI();
     }
 
     private void OnMoveP2(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
     {
-        if (_confirmadoP2) return;
+        if (confirmadoP2) return;
         float x = ctx.ReadValue<Vector2>().x;
-        if (x > 0.5f) MudarIndex(ref _indexP2, 1);
-        else if (x < -0.5f) MudarIndex(ref _indexP2, -1);
+        if (x > 0.5f) MudarIndex(ref indexP2, 1);
+        else if (x < -0.5f) MudarIndex(ref indexP2, -1);
         AtualizarUI();
     }
 
     private void OnConfirmP1(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
     {
-        _confirmadoP1 = !_confirmadoP1;
+        confirmadoP1 = !confirmadoP1;
         AtualizarUI();
         TentarIniciarPartida();
     }
 
     private void OnConfirmP2(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
     {
-        _confirmadoP2 = !_confirmadoP2;
+        confirmadoP2 = !confirmadoP2;
         AtualizarUI();
         TentarIniciarPartida();
     }
@@ -108,18 +108,18 @@ public class BolinhaSelectionManager : MonoBehaviour
     {
         if (bolinhasDisponiveis.Length == 0) return;
 
-        BolinhaData dataP1 = bolinhasDisponiveis[_indexP1];
-        BolinhaData dataP2 = bolinhasDisponiveis[_indexP2];
+        BolinhaData dataP1 = bolinhasDisponiveis[indexP1];
+        BolinhaData dataP2 = bolinhasDisponiveis[indexP2];
 
         if (nomeBolinhaP1 != null) nomeBolinhaP1.text = dataP1.nomeBolinha;
         if (statusP1 != null) statusP1.text = FormatarStatus(dataP1);
         if (previewCorP1 != null) previewCorP1.color = dataP1.corJogador1;
-        if (indicadorProntoP1 != null) indicadorProntoP1.SetActive(_confirmadoP1);
+        if (indicadorProntoP1 != null) indicadorProntoP1.SetActive(confirmadoP1);
 
         if (nomeBolinhaP2 != null) nomeBolinhaP2.text = dataP2.nomeBolinha;
         if (statusP2 != null) statusP2.text = FormatarStatus(dataP2);
         if (previewCorP2 != null) previewCorP2.color = dataP2.corJogador2;
-        if (indicadorProntoP2 != null) indicadorProntoP2.SetActive(_confirmadoP2);
+        if (indicadorProntoP2 != null) indicadorProntoP2.SetActive(confirmadoP2);
     }
 
     private string FormatarStatus(BolinhaData d)
@@ -129,11 +129,11 @@ public class BolinhaSelectionManager : MonoBehaviour
 
     private void TentarIniciarPartida()
     {
-        if (!_confirmadoP1 || !_confirmadoP2) return;
+        if (!confirmadoP1 || !confirmadoP2) return;
 
         GarantirGameSessionExiste();
 
-        GameSession.Instance.DefinirEscolhas(bolinhasDisponiveis[_indexP1], bolinhasDisponiveis[_indexP2]);
+        GameSession.Instance.DefinirEscolhas(bolinhasDisponiveis[indexP1], bolinhasDisponiveis[indexP2]);
         GameSession.Instance.IniciarPartida(nomeCenaGameplay, nomeCenaGUI);
     }
 

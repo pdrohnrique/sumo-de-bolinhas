@@ -22,5 +22,7 @@ MonoBehaviour:
   forcaEmpurrao: 1.4
   cooldownAcao: 3
   massaGanhaPorMoeda: 0.2
-  forcaGanhaPorMoeda: 2
+  forcaGanhaPorMoeda: 0.66666
   velocidadePerdidaPorMoeda: 0.1
+  forcaMovimentoMaxima: 60
+  multiplicadorRespostaMovimento: 1
