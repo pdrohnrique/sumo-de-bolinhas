@@ -21,7 +21,7 @@ public class GameplayUIController : MonoBehaviour
     public TMP_Text avisoRound;
     public float duracaoAviso = 1.5f;
 
-    private float timerAviso;
+    private float _timerAviso;
 
     void OnEnable()
     {
@@ -52,10 +52,10 @@ public class GameplayUIController : MonoBehaviour
 
     void Update()
     {
-        if (timerAviso > 0f)
+        if (_timerAviso > 0f)
         {
-            timerAviso -= Time.deltaTime;
-            if (timerAviso <= 0f && avisoRound != null)
+            _timerAviso -= Time.deltaTime;
+            if (_timerAviso <= 0f && avisoRound != null)
             {
                 avisoRound.gameObject.SetActive(false);
             }
@@ -85,6 +85,6 @@ public class GameplayUIController : MonoBehaviour
             ? "Jogador 1 venceu o round!"
             : "Jogador 2 venceu o round!";
         avisoRound.gameObject.SetActive(true);
-        timerAviso = duracaoAviso;
+        _timerAviso = duracaoAviso;
     }
 }

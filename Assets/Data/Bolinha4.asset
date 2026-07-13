@@ -19,7 +19,7 @@ MonoBehaviour:
   velocidade: 6
   tamanho: 0.7
   massa: 0.6
-  forcaEmpurrao: 8
+  forcaEmpurrao: 0.8
   cooldownAcao: 1.5
   massaGanhaPorMoeda: 0.08
   forcaGanhaPorMoeda: 1

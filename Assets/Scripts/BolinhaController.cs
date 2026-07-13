@@ -23,9 +23,7 @@ public class BolinhaController : MonoBehaviour
     [Tooltip("Distância mínima usada no cálculo, evita força infinita quando colado")]
     public float distanciaMinima = 0.5f;
     [Tooltip("Distância na qual a bolinha ainda recebe a força CHEIA (controla a intensidade geral do empurrão). Aumente pra sentir o empurrão mais forte à distância.")]
-    public float distanciaReferenciaForca = 3f;
-    [Tooltip("Componente vertical extra aplicada no empurrão, pra dar uma leve 'jogada pra cima'")]
-    public float componenteVerticalEmpurrao = 2f;
+    public float distanciaReferenciaForca = 3f; 
 
     // --- Eventos (Observer pattern) para a UI escutar sem acoplamento direto ---
     public event Action<float> OnCooldownProgressChanged; // 0 = acabou de usar, 1 = pronto
@@ -34,40 +32,40 @@ public class BolinhaController : MonoBehaviour
     // Referência à outra bolinha, atribuída pelo GameManager ao iniciar o round
     [HideInInspector] public BolinhaController alvoInimigo;
 
-    private Rigidbody rb;
-    private PlayerControls controls;
-    private Vector2 inputMove; // x = eixo X do mundo, y = eixo Z do mundo
+    private Rigidbody _rb;
+    private PlayerControls _controls;
+    private Vector2 _inputMove; // x = eixo X do mundo, y = eixo Z do mundo
 
-    private float velocidadeAtual;
-    private float forcaAtual;
-    private int moedasColetadas;
+    private float _velocidadeAtual;
+    private float _forcaAtual;
+    private int _moedasColetadas;
 
-    private float cooldownTimer;
-    private bool podeUsarAcao = true;
+    private float _cooldownTimer;
+    private bool _podeUsarAcao = true;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.useGravity = true;
-        rb.freezeRotation = true; // controle direto, sem a bolinha tombar/rolar de forma imprevisível
-        controls = new PlayerControls();
+        _rb = GetComponent<Rigidbody>();
+        _rb.useGravity = true;
+        _rb.freezeRotation = true; // controle direto, sem a bolinha tombar/rolar de forma imprevisível
+        _controls = new PlayerControls();
     }
 
     void OnEnable()
     {
         if (playerIndex == PlayerIndex.Player1)
         {
-            controls.Player1.Enable();
-            controls.Player1.Move.performed += OnMovePerformed;
-            controls.Player1.Move.canceled += OnMoveCanceled;
-            controls.Player1.Ability.performed += OnAbilityPerformed;
+            _controls.Player1.Enable();
+            _controls.Player1.Move.performed += OnMovePerformed;
+            _controls.Player1.Move.canceled += OnMoveCanceled;
+            _controls.Player1.Ability.performed += OnAbilityPerformed;
         }
         else
         {
-            controls.Player2.Enable();
-            controls.Player2.Move.performed += OnMovePerformed;
-            controls.Player2.Move.canceled += OnMoveCanceled;
-            controls.Player2.Ability.performed += OnAbilityPerformed;
+            _controls.Player2.Enable();
+            _controls.Player2.Move.performed += OnMovePerformed;
+            _controls.Player2.Move.canceled += OnMoveCanceled;
+            _controls.Player2.Ability.performed += OnAbilityPerformed;
         }
     }
 
@@ -75,17 +73,17 @@ public class BolinhaController : MonoBehaviour
     {
         if (playerIndex == PlayerIndex.Player1)
         {
-            controls.Player1.Move.performed -= OnMovePerformed;
-            controls.Player1.Move.canceled -= OnMoveCanceled;
-            controls.Player1.Ability.performed -= OnAbilityPerformed;
-            controls.Player1.Disable();
+            _controls.Player1.Move.performed -= OnMovePerformed;
+            _controls.Player1.Move.canceled -= OnMoveCanceled;
+            _controls.Player1.Ability.performed -= OnAbilityPerformed;
+            _controls.Player1.Disable();
         }
         else
         {
-            controls.Player2.Move.performed -= OnMovePerformed;
-            controls.Player2.Move.canceled -= OnMoveCanceled;
-            controls.Player2.Ability.performed -= OnAbilityPerformed;
-            controls.Player2.Disable();
+            _controls.Player2.Move.performed -= OnMovePerformed;
+            _controls.Player2.Move.canceled -= OnMoveCanceled;
+            _controls.Player2.Ability.performed -= OnAbilityPerformed;
+            _controls.Player2.Disable();
         }
     }
 
@@ -98,13 +96,13 @@ public class BolinhaController : MonoBehaviour
     {
         if (data == null) return;
 
-        velocidadeAtual = data.velocidade;
-        forcaAtual = data.forcaEmpurrao;
-        rb.mass = data.massa;
+        _velocidadeAtual = data.velocidade;
+        _forcaAtual = data.forcaEmpurrao;
+        _rb.mass = data.massa;
         transform.localScale = Vector3.one * data.tamanho;
-        moedasColetadas = 0;
-        cooldownTimer = 0f;
-        podeUsarAcao = true;
+        _moedasColetadas = 0;
+        _cooldownTimer = 0f;
+        _podeUsarAcao = true;
 
         var component = GetComponent<Renderer>();
         if (component != null)
@@ -121,23 +119,32 @@ public class BolinhaController : MonoBehaviour
 
     void FixedUpdate()
     {
-        Vector3 movimento = new Vector3(inputMove.x, 0f, inputMove.y) * velocidadeAtual;
-        rb.linearVelocity = new Vector3(movimento.x, rb.linearVelocity.y, movimento.z);
+        // alvo de velocidade horizontal desejada (X/Z)
+        Vector3 desiredVel = new Vector3(_inputMove.x, 0f, _inputMove.y) * _velocidadeAtual;
+        Vector3 currentVel = new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z);
+        Vector3 velDelta = desiredVel - currentVel;
+        // força necessária para alcançar velDelta neste passo físico (F = m * dv / dt)
+        Vector3 requiredForce = velDelta * _rb.mass / Time.fixedDeltaTime * data.multiplicadorRespostaMovimento;
+        // limita para evitar picos enormes: usa o limite configurável em BolinhaData
+        float maxForce = data.forcaMovimentoMaxima;
+        if (requiredForce.magnitude > maxForce)
+            requiredForce = requiredForce.normalized * maxForce;
+        _rb.AddForce(requiredForce, ForceMode.Force);
     }
 
     private void OnMovePerformed(InputAction.CallbackContext ctx)
     {
-        inputMove = ctx.ReadValue<Vector2>();
+        _inputMove = ctx.ReadValue<Vector2>();
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
-        inputMove = Vector2.zero;
+        _inputMove = Vector2.zero;
     }
 
     private void OnAbilityPerformed(InputAction.CallbackContext ctx)
     {
-        if (!podeUsarAcao || alvoInimigo == null) return;
+        if (!_podeUsarAcao || alvoInimigo == null) return;
         UsarAcaoDeForca();
     }
 
@@ -154,32 +161,32 @@ public class BolinhaController : MonoBehaviour
 
         // Força máxima quando a distância <= distanciaReferenciaForca, caindo conforme afasta.
         // Independente de alcanceMaximoAcao (que só controla o corte) e de distanciaMinima (só o piso).
-        float magnitude = forcaAtual * (distanciaReferenciaForca / distanciaClamp);
+        float magnitude = _forcaAtual * (distanciaReferenciaForca / distanciaClamp);
 
-        Vector3 forcaFinal = direcao * magnitude + Vector3.up * componenteVerticalEmpurrao;
+        Vector3 forcaFinal = direcao * magnitude;
         alvoInimigo.ReceberEmpurrao(forcaFinal);
 
-        podeUsarAcao = false;
-        cooldownTimer = data.cooldownAcao;
+        _podeUsarAcao = false;
+        _cooldownTimer = data.cooldownAcao;
         OnCooldownProgressChanged?.Invoke(0f);
     }
 
     private void ReceberEmpurrao(Vector3 forca)
     {
-        rb.AddForce(forca, ForceMode.Impulse);
+        _rb.AddForce(forca, ForceMode.Impulse);
     }
 
     private void AtualizarCooldown()
     {
-        if (podeUsarAcao) return;
+        if (_podeUsarAcao) return;
 
-        cooldownTimer -= Time.deltaTime;
-        float progresso = 1f - Mathf.Clamp01(cooldownTimer / data.cooldownAcao);
+        _cooldownTimer -= Time.deltaTime;
+        float progresso = 1f - Mathf.Clamp01(_cooldownTimer / data.cooldownAcao);
         OnCooldownProgressChanged?.Invoke(progresso);
 
-        if (cooldownTimer <= 0f)
+        if (_cooldownTimer <= 0f)
         {
-            podeUsarAcao = true;
+            _podeUsarAcao = true;
             OnCooldownProgressChanged?.Invoke(1f);
         }
     }
@@ -189,11 +196,11 @@ public class BolinhaController : MonoBehaviour
     /// </summary>
     public void ColetarMoeda()
     {
-        moedasColetadas++;
-        rb.mass += data.massaGanhaPorMoeda;
-        forcaAtual += data.forcaGanhaPorMoeda;
-        velocidadeAtual = Mathf.Max(0.5f, velocidadeAtual - data.velocidadePerdidaPorMoeda);
+        _moedasColetadas++;
+        _rb.mass += data.massaGanhaPorMoeda;
+        _forcaAtual += data.forcaGanhaPorMoeda;
+        _velocidadeAtual = Mathf.Max(0.5f, _velocidadeAtual - data.velocidadePerdidaPorMoeda);
 
-        OnMoedaColetada?.Invoke(moedasColetadas);
+        OnMoedaColetada?.Invoke(_moedasColetadas);
     }
 }

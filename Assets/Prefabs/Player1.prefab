@@ -158,5 +158,5 @@ MonoBehaviour:
   alcanceMaximoAcao: 2
   distanciaMinima: 0.5
   distanciaReferenciaForca: 9
-  componenteVerticalEmpurrao: 3
   alvoInimigo: {fileID: 0}
+  MultiplicadorForca: 50

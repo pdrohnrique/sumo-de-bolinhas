@@ -166,6 +166,14 @@ PrefabInstance:
       propertyPath: data
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 3452998116349449137, guid: 66b984c544f5d82b992f55138955ce0f, type: 3}
+      propertyPath: MultiplicadorForca
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4300958112404738220, guid: 66b984c544f5d82b992f55138955ce0f, type: 3}
+      propertyPath: m_LinearDamping
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7441960457296110657, guid: 66b984c544f5d82b992f55138955ce0f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2
@@ -350,6 +358,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6007658089242753849, guid: 9669f6fe56ee7ec9b832cbea9c407389, type: 3}
+      propertyPath: m_LinearDamping
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6690107781937630757, guid: 9669f6fe56ee7ec9b832cbea9c407389, type: 3}
       propertyPath: m_Name
       value: Player1
@@ -357,6 +369,10 @@ PrefabInstance:
     - target: {fileID: 8417047933341296650, guid: 9669f6fe56ee7ec9b832cbea9c407389, type: 3}
       propertyPath: data
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8417047933341296650, guid: 9669f6fe56ee7ec9b832cbea9c407389, type: 3}
+      propertyPath: MultiplicadorForca
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

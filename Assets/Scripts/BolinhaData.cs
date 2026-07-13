@@ -37,4 +37,11 @@ public class BolinhaData : ScriptableObject
 
     [Tooltip("Quanto a velocidade É REDUZIDA por moeda coletada")]
     public float velocidadePerdidaPorMoeda = 0.2f;
+    
+    [Header("Movimento físico")] 
+    [Tooltip("Força máxima aplicada pelo sistema de movimentação (limita aceleração)")]
+    public float forcaMovimentoMaxima = 60f;
+    
+    [Tooltip("Multiplicador de responsividade do movimento (1 = padrão; >1 mais responsivo)")]
+    public float multiplicadorRespostaMovimento = 1f;
 }

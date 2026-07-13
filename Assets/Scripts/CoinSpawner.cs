@@ -19,8 +19,8 @@ public class CoinSpawner : MonoBehaviour
     [Tooltip("Número máximo de moedas na arena ao mesmo tempo")]
     public int maxMoedasSimultaneas = 3;
 
-    private readonly List<Coin> moedasAtivas = new List<Coin>();
-    private float timer;
+    private readonly List<Coin> _moedasAtivas = new List<Coin>();
+    private float _timer;
 
     void Awake()
     {
@@ -34,10 +34,10 @@ public class CoinSpawner : MonoBehaviour
 
     void Update()
     {
-        timer += Time.deltaTime;
-        if (timer >= intervaloSpawn && moedasAtivas.Count < maxMoedasSimultaneas)
+        _timer += Time.deltaTime;
+        if (_timer >= intervaloSpawn && _moedasAtivas.Count < maxMoedasSimultaneas)
         {
-            timer = 0f;
+            _timer = 0f;
             SpawnMoeda();
         }
     }
@@ -48,22 +48,22 @@ public class CoinSpawner : MonoBehaviour
         Vector3 posAleatoria = new Vector3(circulo.x, alturaSpawn, circulo.y);
         GameObject obj = Instantiate(coinPrefab, posAleatoria, Quaternion.identity);
         Coin coin = obj.GetComponent<Coin>();
-        if (coin != null) moedasAtivas.Add(coin);
+        if (coin != null) _moedasAtivas.Add(coin);
     }
 
     public void NotificarMoedaColetada(Coin coin)
     {
-        moedasAtivas.Remove(coin);
+        _moedasAtivas.Remove(coin);
     }
 
     /// <summary>Chamado pelo GameManager ao iniciar/reiniciar um round.</summary>
     public void LimparTodasAsMoedas()
     {
-        foreach (var coin in moedasAtivas)
+        foreach (var coin in _moedasAtivas)
         {
             if (coin != null) Destroy(coin.gameObject);
         }
-        moedasAtivas.Clear();
-        timer = 0f;
+        _moedasAtivas.Clear();
+        _timer = 0f;
     }
 }

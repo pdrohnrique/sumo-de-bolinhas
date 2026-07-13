@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     public event Action<PlayerIndex> OnRoundTerminou;
     public event Action<PlayerIndex> OnPartidaTerminou;
 
-    private bool rodadaEmAndamento = true;
+    private bool _rodadaEmAndamento = true;
 
     void Awake()
     {
@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (!rodadaEmAndamento) return;
+        if (!_rodadaEmAndamento) return;
 
         if (EstaForaDaArena(bolinhaP1.transform.position))
         {
@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
 
     private void IniciarRound()
     {
-        rodadaEmAndamento = true;
+        _rodadaEmAndamento = true;
 
         bolinhaP1.transform.position = posicaoInicialP1.position;
         bolinhaP2.transform.position = posicaoInicialP2.position;
@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour
 
     private void TerminarRound(PlayerIndex vencedorDoRound)
     {
-        rodadaEmAndamento = false;
+        _rodadaEmAndamento = false;
         OnRoundTerminou?.Invoke(vencedorDoRound);
 
         bool partidaAcabou = GameSession.Instance != null &&
